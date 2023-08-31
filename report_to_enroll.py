@@ -21,7 +21,6 @@ def row_to_dict(header, row):
     return dict(zip(header, row))
 
 
-# @TODO criteria for different internships programs
 def meets_program_criteria(student):
     """ Check if student meets the criteria to be added to their major's
     internship course. Criteria rely on the Latest Class Standing field, which
@@ -36,7 +35,10 @@ def meets_program_criteria(student):
         bool: true if ready, false otherwise
     """
     major = student['Primary Program of Study']
-    if major in ('Architecture', 'Interior Design') and student['Latest Class Standing'] not in ('First Year', 'Second Year'):
+    # @TODO meet with programs and confirm that this is what they want
+    if major in ('Architecture', 'Interior Design', 'Graphic Design', 'Interaction Design', 'Industrial Design') and student['Latest Class Standing'] not in ('First Year', 'Second Year'):
+        return True
+    if major == 'Graduate Architecture' and student['Latest Class Standing'] != 'First Year':
         return True
     # default to false
     return False
