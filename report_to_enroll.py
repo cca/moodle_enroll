@@ -23,10 +23,29 @@ def row_to_dict(header, row):
 
 # @TODO criteria for different internships programs
 def meets_program_criteria(student):
+    """ check if student meets the criteria to be added to their major's internship course
+
+    Args:
+        student (dict): dict of student information
+
+    Returns:
+        bool: true if ready, false otherwise
+    """
     return True
 
 
-def make_enrollment(student, program):
+def make_enrollment(student, program=None):
+    """ create an enrollment row if student meets general criteria
+    if program is present, only returns rows for students in that program
+
+    Args:
+        student (dict): dict of student information
+        program (str|None): program filter or None for all programs
+
+    Returns:
+        list|False: returns a list ready to be added to a Moodle enrollment CSV
+        if the student is ready, otherwise the boolean False
+    """
     # students must be actively enrolled in a program with a required internship
     major = student['Primary Program of Study']
     if major in programs_with_internship and student['Primary Program of Study Record Status'] == 'In Progress' and student['CCA Email']:
