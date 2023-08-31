@@ -19,6 +19,7 @@ pipenv install
 1. Download the "Students for Internship Review" report
 1. `pipenv run python report_to_enroll.py -r report.xlsx`
     1. You don't need to pass a `-r` parameter if the report keeps its default name "Students_for_Internship_Review.xlsx"
+    1. Generate enrollments for a single program with `-p $PROGRAM` e.g. `-p Architecture`
 1. Moodle > [Upload Users](https://moodle.cca.edu/admin/tool/uploaduser/index.php)
     1. Select the CSV
     1. Don't modify user values (e.g. no updates, no default values, etc.)
