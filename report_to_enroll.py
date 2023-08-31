@@ -23,7 +23,11 @@ def row_to_dict(header, row):
 
 # @TODO criteria for different internships programs
 def meets_program_criteria(student):
-    """ check if student meets the criteria to be added to their major's internship course
+    """ Check if student meets the criteria to be added to their major's
+    internship course. Criteria rely on the Latest Class Standing field, which
+    is a string that goes from "First Year" up to "Fifth Year". It is not a
+    _level_ per se, as in an undergrad can be a "Fifth Year" and grad students
+    start in their "First Year". "First Year" != Freshman.
 
     Args:
         student (dict): dict of student information
@@ -31,7 +35,11 @@ def meets_program_criteria(student):
     Returns:
         bool: true if ready, false otherwise
     """
-    return True
+    major = student['Primary Program of Study']
+    if major in ('Architecture', 'Interior Design') and student['Latest Class Standing'] not in ('First Year', 'Second Year'):
+        return True
+    # default to false
+    return False
 
 
 def make_enrollment(student, program=None):
