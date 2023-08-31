@@ -1,6 +1,7 @@
 import argparse
 import csv
 import re
+import warnings
 
 from openpyxl import load_workbook
 
@@ -31,7 +32,10 @@ def make_enrollment(student):
 
 
 def wd_report_to_enroll_csv(report):
-    wb = load_workbook(report)
+    # silence "Workbook contains no default style" warning
+    with warnings.catch_warnings(record=True):
+        warnings.simplefilter("always")
+        wb = load_workbook(report)
     sheet = wb.active
     rows = sheet.iter_rows(values_only=True)
     header = next(rows)
