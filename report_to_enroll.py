@@ -1,10 +1,33 @@
 import argparse
+import csv
+import re
 
 from openpyxl import load_workbook
 
 
+program_to_course_map = {
+    'Architecture': 'ARCHT-INTRN',
+    'Graduate Architecture': 'MARCH-INTRN',
+    'Graphic Design': 'GRAPH-INTRN',
+    'Industrial Design': 'INDUS-INTRN',
+    'Interaction Design': 'IXDSN-INTRN',
+    'Interior Design': 'INTER-INTRN',
+}
+programs_with_internship = list(program_to_course_map.keys())
+
+
 def row_to_dict(header, row):
     return dict(zip(header, row))
+
+
+def make_enrollment(student):
+    # students must be actively enrolled in a program with a required internship
+    if student['Primary Program of Study'] in programs_with_internship and student['Primary Program of Study Record Status'] == 'In Progress' and student['CCA Email']:
+        username = re.sub('@cca.edu', '', student['CCA Email'])
+        course = program_to_course_map[student['Primary Program of Study']]
+        group = 'International' if student['Is International Student'] == 'Yes' else ''
+        return [username, course, group]
+    return False
 
 
 def wd_report_to_enroll_csv(report):
@@ -12,10 +35,14 @@ def wd_report_to_enroll_csv(report):
     sheet = wb.active
     rows = sheet.iter_rows(values_only=True)
     header = next(rows)
-    for row in rows:
-        row = row_to_dict(header, row)
-        print(row)
-        exit(0)
+    with open('enrollments.csv', 'w') as file:
+        writer = csv.writer(file)
+        # write CSV header row
+        writer.writerow(['username', 'course1', 'group1'])
+        for row in rows:
+            student = row_to_dict(header, row)
+            e = make_enrollment(student)
+            if e: writer.writerow(e)
 
 
 if __name__ == '__main__':
