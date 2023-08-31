@@ -22,3 +22,7 @@ pipenv install
 1. Moodle > [Upload Users](https://moodle.cca.edu/admin/tool/uploaduser/index.php)
     1. Select the CSV
     1. Don't modify user values (e.g. no updates, no default values, etc.)
+
+## LICENSE
+
+[ECL Version 2.0](https://opensource.org/licenses/ECL-2.0)
