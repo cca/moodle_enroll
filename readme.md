@@ -12,6 +12,7 @@ Prerequisites:
 
 ```sh
 pipenv install
+pipenv run test # run tests
 ```
 
 ## Usage
