@@ -36,7 +36,7 @@ def meets_program_criteria(student):
     """
     major = student["Primary Program of Study"]
     # @TODO meet with programs and confirm that this is what they want
-    # INDUS wants students to finish Prof Practice, we do not repload them
+    # INDUS wants students to finish Prof Practice, we do not reload them
     if major in (
         "Architecture",
         "Interior Design",
@@ -89,7 +89,7 @@ def wd_report_to_enroll_csv(report, program):
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
         wb = load_workbook(report)
-    sheet = wb.active
+    sheet = wb.worksheets[0]
     rows = sheet.iter_rows(values_only=True)
     header = next(rows)
     with open("enrollments.csv", "w") as file:
