@@ -35,10 +35,10 @@ def meets_program_criteria(student):
         bool: true if ready, false otherwise
     """
     major = student["Primary Program of Study"]
-    # @TODO meet with programs and confirm that this is what they want
-    # INDUS wants students to finish Prof Practice, we do not reload them
+    # TODO meet with programs and confirm that this is what they want
+    # INDUS wants students to finish Prof Practice, we do not preload them
     if major in (
-        "Architecture",
+        "Architecture",  # confirmed
         "Interior Design",
         "Graphic Design",
         "Interaction Design",
@@ -53,7 +53,7 @@ def meets_program_criteria(student):
     return False
 
 
-def make_enrollment(student, program=None):
+def make_enrollment(student, semester, program=None):
     """create an enrollment row if student meets general criteria
     if program is present, only returns rows for students in that program
 
@@ -79,12 +79,14 @@ def make_enrollment(student, program=None):
         # return enrollment row
         username = re.sub("@cca.edu", "", student["CCA Email"])
         course = program_to_course_map[major]
-        group = "International" if student["Is International Student"] == "Yes" else ""
-        return [username, course, group]
+        is_intl = (
+            "International" if student["Is International Student"] == "Yes" else ""
+        )
+        return [username, course, semester, is_intl]
     return False
 
 
-def wd_report_to_enroll_csv(report, program):
+def wd_report_to_enroll_csv(report, semester, program):
     # silence "Workbook contains no default style" warning
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
@@ -95,10 +97,10 @@ def wd_report_to_enroll_csv(report, program):
     with open("enrollments.csv", "w") as file:
         writer = csv.writer(file)
         # write CSV header row
-        writer.writerow(["username", "course1", "group1"])
+        writer.writerow(["username", "course1", "group1", "group2"])
         for row in rows:
             student = row_to_dict(header, row)
-            e = make_enrollment(student, program)
+            e = make_enrollment(student, semester, program)
             if e:
                 writer.writerow(e)
 
@@ -118,9 +120,12 @@ if __name__ == "__main__":
     parser.add_argument(
         "-r",
         "--report",
-        required=False,
+        required=True,
         default="Students_for_Internship_Review.xlsx",
         help="path to the Workday Excel file",
     )
+    parser.add_argument(
+        "-s", "--semester", required=True, help='semester group (like "Fall 2023"))'
+    )
     args = parser.parse_args()
-    wd_report_to_enroll_csv(args.report, args.program)
+    wd_report_to_enroll_csv(args.report, args.semester, args.program)
