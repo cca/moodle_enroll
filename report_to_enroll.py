@@ -105,6 +105,15 @@ def wd_report_to_enroll_csv(report, semester, program):
                 writer.writerow(e)
 
 
+def semester(str):
+    """validate semester string"""
+    if re.match(r"(Spring|Fall|Summer) \d{4}", str):
+        return str
+    raise argparse.ArgumentTypeError(
+        f"Semester must be in the format of 'Season YYYY' like 'Fall 2023', not '{str}'"
+    )
+
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         prog="report_to_enrol",
@@ -125,7 +134,11 @@ if __name__ == "__main__":
         help="path to the Workday Excel file",
     )
     parser.add_argument(
-        "-s", "--semester", required=True, help='semester group (like "Fall 2023"))'
+        "-s",
+        "--semester",
+        required=True,
+        type=semester,
+        help='semester group (like "Fall 2023"))',
     )
     args = parser.parse_args()
     wd_report_to_enroll_csv(args.report, args.semester, args.program)
