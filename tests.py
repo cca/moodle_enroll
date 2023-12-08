@@ -48,7 +48,7 @@ from .report_to_enroll import meets_program_criteria, make_enrollment
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            ["a", "ARCHT-INTRN", ""],
+            ["a", "ARCHT-INTRN", "Fall 2023", ""],
         ),
         # international enrollment
         (
@@ -59,12 +59,12 @@ from .report_to_enroll import meets_program_criteria, make_enrollment
                 "Is International Student": "Yes",
                 "Latest Class Standing": "Third Year",
             },
-            ["a", "INTER-INTRN", "International"],
+            ["a", "INTER-INTRN", "Fall 2023", "International"],
         ),
     ],
 )
 def test_make_enrollment(input, expected):
-    assert make_enrollment(input) == expected
+    assert make_enrollment(input, "Fall 2023") == expected
 
 
 @pytest.mark.parametrize(
@@ -90,12 +90,12 @@ def test_make_enrollment(input, expected):
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            ["a", "INTER-INTRN", ""],
+            ["a", "INTER-INTRN", "Fall 2023", ""],
         ),
     ],
 )
 def test_make_enrollment_program_filter(input, expected):
-    assert make_enrollment(input, "Interior Design") == expected
+    assert make_enrollment(input, "Fall 2023", "Interior Design") == expected
 
 
 @pytest.mark.parametrize(
