@@ -1,12 +1,13 @@
 import argparse
 import csv
 import re
+from typing import Any, Literal
 import warnings
 
 from openpyxl import load_workbook
 
 
-program_to_course_map = {
+program_to_course_map: dict[str, str] = {
     "Architecture": "ARCHT-INTRN",
     "Graduate Architecture": "MARCH-INTRN",
     "Graphic Design": "GRAPH-INTRN",
@@ -17,11 +18,11 @@ program_to_course_map = {
 programs_with_internship = list(program_to_course_map.keys())
 
 
-def row_to_dict(header, row):
+def row_to_dict(header, row) -> dict[Any, Any]:
     return dict(zip(header, row))
 
 
-def meets_program_criteria(student):
+def meets_program_criteria(student) -> bool:
     """Check if student meets the criteria to be added to their major's
     internship course. Criteria rely on the Latest Class Standing field, which
     is a string that goes from "First Year" up to "Fifth Year". It is not a
@@ -53,7 +54,7 @@ def meets_program_criteria(student):
     return False
 
 
-def make_enrollment(student, semester, program=None):
+def make_enrollment(student, semester, program=None) -> list[Any] | Literal[False]:
     """create an enrollment row if student meets general criteria
     if program is present, only returns rows for students in that program
 
