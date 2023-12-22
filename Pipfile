@@ -6,6 +6,7 @@ name = "pypi"
 [packages]
 openpyxl = "*"
 pytest = "*"
+click = "==8.1.7"
 
 [dev-packages]
 
