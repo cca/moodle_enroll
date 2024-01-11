@@ -1,6 +1,6 @@
 import pytest
 
-from .report_to_enroll import meets_program_criteria, make_enrollment
+from .interns import meets_program_criteria, make_enrollment
 
 
 @pytest.mark.parametrize(

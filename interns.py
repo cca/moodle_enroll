@@ -117,7 +117,7 @@ def semester(str):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
-        prog="report_to_enrol",
+        prog="python interns.py",
         description="Convert Workday internships report into Moodle enrollment CSV.",
     )
     parser.add_argument(
