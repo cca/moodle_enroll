@@ -54,7 +54,9 @@ def meets_program_criteria(student) -> bool:
     return False
 
 
-def make_enrollment(student, semester, program=None) -> list[Any] | Literal[False]:
+def make_enrollment(
+    student, semester, program=None, listmode=False
+) -> list[Any] | Literal[False]:
     """create an enrollment row if student meets general criteria
     if program is present, only returns rows for students in that program
 
@@ -83,15 +85,17 @@ def make_enrollment(student, semester, program=None) -> list[Any] | Literal[Fals
         is_intl = (
             "International" if student["Is International Student"] == "Yes" else ""
         )
+        if listmode:
+            return [student["Student"], student["CCA Email"]]
         return [username, course, semester, is_intl]
     return False
 
 
-def wd_report_to_enroll_csv(report, semester, program):
+def wd_report_to_enroll_csv(args):
     # silence "Workbook contains no default style" warning
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
-        wb = load_workbook(report)
+        wb = load_workbook(args.report)
     sheet = wb.worksheets[0]
     rows = sheet.iter_rows(values_only=True)
     header = next(rows)
@@ -101,8 +105,10 @@ def wd_report_to_enroll_csv(report, semester, program):
         writer.writerow(["username", "course1", "group1", "group2"])
         for row in rows:
             student = row_to_dict(header, row)
-            e = make_enrollment(student, semester, program)
-            if e:
+            e = make_enrollment(student, args.semester, args.program, args.list)
+            if args.list and e:
+                print("\t".join(e))
+            elif e:
                 writer.writerow(e)
 
 
@@ -137,9 +143,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "-s",
         "--semester",
-        required=True,
+        default="Fall 2024",
         type=semester,
         help='semester group (like "Fall 2023"))',
     )
+    parser.add_argument(
+        "-l",
+        "--list",
+        action="store_true",
+        help="print list of students (instead of CSV)",
+    )
     args = parser.parse_args()
-    wd_report_to_enroll_csv(args.report, args.semester, args.program)
+    wd_report_to_enroll_csv(args)

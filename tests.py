@@ -138,3 +138,37 @@ def test_make_enrollment_program_filter(input, expected):
 )
 def test_meets_program_criteria(input, expected):
     assert meets_program_criteria(input) == expected
+
+
+# test listmode
+@pytest.mark.parametrize(
+    "input,expected",
+    [
+        # ARCHT first year, does not meet
+        (
+            {
+                "Student": "fake name",
+                "CCA Email": "a@cca.edu",
+                "Primary Program of Study Record Status": "In Progress",
+                "Primary Program of Study": "Architecture",
+                "Is International Student": "",
+                "Latest Class Standing": "First Year",
+            },
+            False,
+        ),
+        # ARCHT third year, meets
+        (
+            {
+                "Student": "fake name",
+                "CCA Email": "a@cca.edu",
+                "Primary Program of Study Record Status": "In Progress",
+                "Primary Program of Study": "Architecture",
+                "Is International Student": "",
+                "Latest Class Standing": "Third Year",
+            },
+            ["fake name", "a@cca.edu"],
+        ),
+    ],
+)
+def test_make_enrollment_listmode(input, expected):
+    assert make_enrollment(input, "Fall 2023", listmode=True) == expected
