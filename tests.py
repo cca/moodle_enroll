@@ -1,6 +1,6 @@
 import pytest
 
-from .interns import meets_program_criteria, make_enrollment
+from .interns import meets_program_criteria, make_enrollments
 
 
 @pytest.mark.parametrize(
@@ -15,7 +15,7 @@ from .interns import meets_program_criteria, make_enrollment
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            False,
+            [],
         ),
         # not 'in progress'
         (
@@ -26,7 +26,7 @@ from .interns import meets_program_criteria, make_enrollment
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            False,
+            [],
         ),
         # no email
         (
@@ -37,7 +37,7 @@ from .interns import meets_program_criteria, make_enrollment
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            False,
+            [],
         ),
         # domestic enrollment
         (
@@ -48,7 +48,7 @@ from .interns import meets_program_criteria, make_enrollment
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            ["a", "ARCHT-INTRN", "Fall 2023", ""],
+            [("a", "ARCHT-INTRN", "Fall 2023")],
         ),
         # international enrollment
         (
@@ -59,12 +59,12 @@ from .interns import meets_program_criteria, make_enrollment
                 "Is International Student": "Yes",
                 "Latest Class Standing": "Third Year",
             },
-            ["a", "INTER-INTRN", "Fall 2023", "International"],
+            [("a", "INTER-INTRN", "Fall 2023"), ("a", "INTER-INTRN", "International")],
         ),
     ],
 )
-def test_make_enrollment(input, expected):
-    assert make_enrollment(input, "Fall 2023") == expected
+def test_make_enrollments(input, expected):
+    assert make_enrollments(input, "Fall 2023") == expected
 
 
 @pytest.mark.parametrize(
@@ -79,7 +79,7 @@ def test_make_enrollment(input, expected):
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            False,
+            [],
         ),
         # in program
         (
@@ -90,12 +90,12 @@ def test_make_enrollment(input, expected):
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            ["a", "INTER-INTRN", "Fall 2023", ""],
+            [("a", "INTER-INTRN", "Fall 2023")],
         ),
     ],
 )
 def test_make_enrollment_program_filter(input, expected):
-    assert make_enrollment(input, "Fall 2023", "Interior Design") == expected
+    assert make_enrollments(input, "Fall 2023", "Interior Design") == expected
 
 
 @pytest.mark.parametrize(
@@ -123,14 +123,14 @@ def test_make_enrollment_program_filter(input, expected):
             },
             True,
         ),
-        # ARCHT > 3rd year, also meets
+        # MARCH 2nd year, also meets
         (
             {
                 "CCA Email": "a@cca.edu",
                 "Primary Program of Study Record Status": "In Progress",
-                "Primary Program of Study": "Architecture",
-                "Is International Student": "",
-                "Latest Class Standing": "Fourth Year",
+                "Primary Program of Study": "Graduate Architecture",
+                "Is International Student": "Yes",
+                "Latest Class Standing": "Second Year",
             },
             True,
         ),
@@ -154,7 +154,7 @@ def test_meets_program_criteria(input, expected):
                 "Is International Student": "",
                 "Latest Class Standing": "First Year",
             },
-            False,
+            [],
         ),
         # ARCHT third year, meets
         (
@@ -171,4 +171,4 @@ def test_meets_program_criteria(input, expected):
     ],
 )
 def test_make_enrollment_listmode(input, expected):
-    assert make_enrollment(input, "Fall 2023", listmode=True) == expected
+    assert make_enrollments(input, "Fall 2023", listmode=True) == expected

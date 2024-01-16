@@ -1,7 +1,7 @@
 import argparse
 import csv
 import re
-from typing import Any, Literal
+from typing import Any
 import warnings
 
 from openpyxl import load_workbook
@@ -36,14 +36,17 @@ def meets_program_criteria(student) -> bool:
         bool: true if ready, false otherwise
     """
     major = student["Primary Program of Study"]
-    # TODO meet with programs and confirm that this is what they want
     # INDUS wants students to finish Prof Practice, we do not preload them
-    if major in (
-        "Architecture",  # confirmed
-        "Interior Design",
-        "Graphic Design",
-        "Interaction Design",
-    ) and student["Latest Class Standing"] not in ("First Year", "Second Year"):
+    if (
+        major
+        in (
+            "Architecture",
+            "Interior Design",
+            "Graphic Design",
+            "Interaction Design",
+        )
+        and student["Latest Class Standing"] == "Third Year"
+    ):
         return True
     if (
         major == "Graduate Architecture"
@@ -54,10 +57,8 @@ def meets_program_criteria(student) -> bool:
     return False
 
 
-def make_enrollment(
-    student, semester, program=None, listmode=False
-) -> list[Any] | Literal[False]:
-    """create an enrollment row if student meets general criteria
+def make_enrollments(student, semester, program=None, listmode=False) -> list[Any]:
+    """return enrollment rows if student meets general criteria
     if program is present, only returns rows for students in that program
 
     Args:
@@ -65,7 +66,7 @@ def make_enrollment(
         program (str|None): program filter or None for all programs
 
     Returns:
-        list|False: returns a list ready to be added to a Moodle enrollment CSV
+        list: returns a list ready to be added to a Moodle enrollment CSV
         if the student is ready, otherwise the boolean False
     """
     # students must be actively enrolled in a program with a required internship
@@ -76,19 +77,22 @@ def make_enrollment(
         and student["CCA Email"]
     ):
         if program and major != program:
-            return False
+            return []
         if not meets_program_criteria(student):
-            return False
+            return []
         # return enrollment row
         username = re.sub("@cca.edu", "", student["CCA Email"])
         course = program_to_course_map[major]
         is_intl = (
-            "International" if student["Is International Student"] == "Yes" else ""
+            "International" if student["Is International Student"] == "Yes" else False
         )
         if listmode:
             return [student["Student"], student["CCA Email"]]
-        return [username, course, semester, is_intl]
-    return False
+        if is_intl:
+            # intl students need 2 enrollments so they can be in 2 groups (semester and intl)
+            return [(username, course, semester), (username, course, is_intl)]
+        return [(username, course, semester)]
+    return []
 
 
 def wd_report_to_enroll_csv(args):
@@ -105,11 +109,13 @@ def wd_report_to_enroll_csv(args):
         writer.writerow(["username", "course1", "group1", "group2"])
         for row in rows:
             student = row_to_dict(header, row)
-            e = make_enrollment(student, args.semester, args.program, args.list)
-            if args.list and e:
-                print("\t".join(e))
-            elif e:
-                writer.writerow(e)
+            enrollments = make_enrollments(
+                student, args.semester, args.program, args.list
+            )
+            if args.list and len(enrollments):
+                print("\t".join(enrollments))
+            else:
+                writer.writerows(enrollments)
 
 
 def semester(str):
