@@ -106,7 +106,7 @@ def wd_report_to_enroll_csv(args) -> None:
     with open("enrollments.csv", "w") as file:
         writer: _csv._writer = csv.writer(file)
         # write CSV header row
-        writer.writerow(["username", "course1", "group1", "group2"])
+        writer.writerow(["username", "course1", "group1"])
         for row in rows:
             student: dict[str, str] = row_to_dict(header, row)
             enrollments: list = make_enrollments(
