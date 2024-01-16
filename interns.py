@@ -1,10 +1,12 @@
+import _csv  # for typing
 import argparse
 import csv
 import re
-from typing import Any
+from typing import Any, Generator, Literal
 import warnings
 
-from openpyxl import load_workbook
+from openpyxl import Workbook, load_workbook
+from openpyxl.worksheet.worksheet import Worksheet
 
 
 program_to_course_map: dict[str, str] = {
@@ -35,7 +37,8 @@ def meets_program_criteria(student) -> bool:
     Returns:
         bool: true if ready, false otherwise
     """
-    major = student["Primary Program of Study"]
+    major: str = student["Primary Program of Study"]
+    level: str = student["Latest Class Standing"]
     # INDUS wants students to finish Prof Practice, we do not preload them
     if (
         major
@@ -45,13 +48,10 @@ def meets_program_criteria(student) -> bool:
             "Graphic Design",
             "Interaction Design",
         )
-        and student["Latest Class Standing"] == "Third Year"
+        and level == "Third Year"
     ):
         return True
-    if (
-        major == "Graduate Architecture"
-        and student["Latest Class Standing"] != "First Year"
-    ):
+    if major == "Graduate Architecture" and level != "First Year":
         return True
     # default to false
     return False
@@ -70,7 +70,7 @@ def make_enrollments(student, semester, program=None, listmode=False) -> list[An
         if the student is ready, otherwise the boolean False
     """
     # students must be actively enrolled in a program with a required internship
-    major = student["Primary Program of Study"]
+    major: str = student["Primary Program of Study"]
     if (
         major in programs_with_internship
         and student["Primary Program of Study Record Status"] == "In Progress"
@@ -80,10 +80,10 @@ def make_enrollments(student, semester, program=None, listmode=False) -> list[An
             return []
         if not meets_program_criteria(student):
             return []
-        # return enrollment row
-        username = re.sub("@cca.edu", "", student["CCA Email"])
-        course = program_to_course_map[major]
-        is_intl = (
+        # return enrollment rows
+        username: str = re.sub("@cca.edu", "", student["CCA Email"])
+        course: str = program_to_course_map[major]
+        is_intl: Literal["International", False] = (
             "International" if student["Is International Student"] == "Yes" else False
         )
         if listmode:
@@ -95,21 +95,21 @@ def make_enrollments(student, semester, program=None, listmode=False) -> list[An
     return []
 
 
-def wd_report_to_enroll_csv(args):
+def wd_report_to_enroll_csv(args) -> None:
     # silence "Workbook contains no default style" warning
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
-        wb = load_workbook(args.report)
-    sheet = wb.worksheets[0]
-    rows = sheet.iter_rows(values_only=True)
-    header = next(rows)
+        wb: Workbook = load_workbook(args.report)
+    sheet: Worksheet = wb.worksheets[0]
+    rows: Generator = sheet.iter_rows(values_only=True)
+    header: tuple = next(rows)
     with open("enrollments.csv", "w") as file:
-        writer = csv.writer(file)
+        writer: _csv._writer = csv.writer(file)
         # write CSV header row
         writer.writerow(["username", "course1", "group1", "group2"])
         for row in rows:
-            student = row_to_dict(header, row)
-            enrollments = make_enrollments(
+            student: dict[str, str] = row_to_dict(header, row)
+            enrollments: list = make_enrollments(
                 student, args.semester, args.program, args.list
             )
             if args.list and len(enrollments):
@@ -118,7 +118,7 @@ def wd_report_to_enroll_csv(args):
                 writer.writerows(enrollments)
 
 
-def semester(str):
+def semester(str) -> str:
     """validate semester string"""
     if re.match(r"(Spring|Fall|Summer) \d{4}", str):
         return str
