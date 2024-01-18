@@ -1,6 +1,6 @@
-# Internship Course Enrollments
+# Ad Hoc Enrollments Scripts
 
-Convert Workday report into Moodle enrollments CSV.
+Convert reports into Moodle enrollments CSVs.
 
 ## Setup
 
@@ -30,10 +30,10 @@ Generate enrollments CSV for Moodle from Workday report.
 
 ## NSO Enrollments Usage
 
-This script is used to generate enrollments for the New Student Orientation courses. It lets you specify where in a provided CSV to look for the few pieces of information we need (email, type, international status). Example using CSV of Leave of Absence students: `pipenv run python nso-enroll.py --infile loa.csv -e "Student Institutional Email Address" -t "Program of Study Status" --intl "Student is International" -c "NSO-2024SP"`
+This script is used to generate enrollments for the New Student Orientation courses. It lets you specify where in a provided CSV to look for the few pieces of information we need (email, type, international status). Example using CSV of Leave of Absence students: `pipenv run python nso.py --infile loa.csv -e "Student Institutional Email Address" -t "Program of Study Status" --intl "Student is International" -c "NSO-2024SP"`
 
 ```sh
-Usage: nso_enroll.py [OPTIONS]
+Usage: nso.py [OPTIONS]
 
 Options:
   -i, --infile TEXT   Input CSV file
