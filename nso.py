@@ -4,6 +4,7 @@ Be able to specify where the fields we're looking for exist in the CSV.
 The main work of this script is creating multiple rows for International
 students who need to be placed into multiple groups.
 """
+
 import csv
 import re
 
@@ -38,6 +39,7 @@ def writerows(writer, row, field_map) -> None:
 
 
 @click.command()
+@click.help_option("-h", "--help")
 @click.option("--infile", "-i", help="Input CSV file")
 @click.option(
     "--outfile", "-o", default="nso.csv", help="Output CSV file (default: nso.csv)"
