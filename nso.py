@@ -10,20 +10,25 @@ import re
 
 import click
 
-email_regex = re.compile(r"@cca\.edu$")
+email_regex: re.Pattern[str] = re.compile(r"@cca\.edu$")
+student_types: list[str] = ["First Year", "Transfer", "Graduate"]
 
 
 def writerows(writer, row, field_map) -> None:
     # sometimes user hasn't created their CCA email yet, if so skip them
     if not (username := re.sub(email_regex, "", row[field_map["email"]].strip())):
         return
+
+    stype = row[field_map["type"]].strip().title()
+    if stype not in student_types:
+        raise ValueError(f"Unknown student type {stype} for student {username}")
+
     # look for fields we need and write to output
     writer.writerow(
         {
             "username": username,
             "course1": field_map["course"],
-            # TODO we probably want to validate/normalize types
-            "group1": row[field_map["type"]].strip(),
+            "group1": stype,
         }
     )
     # if international, write another row with the international group
@@ -55,8 +60,8 @@ def writerows(writer, row, field_map) -> None:
 @click.option(
     "--type",
     "-t",
-    default="Student Applicant Type Category",
-    help="Student type (First Year, Transfer, Grad, Non-Degree, LOA) column",
+    default="Applicant Type",
+    help="Student type (First Year, Transfer, Graduate) column (default: Applicant Type)",
 )
 # TODO option to generate multiple CSVs (one per grad, transfer, first year)
 @click.option("--course", "-c", help="Course shortname (e.g. NSO-2024SP)")
