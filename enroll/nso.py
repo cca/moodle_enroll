@@ -21,7 +21,10 @@ type_map: dict[str, str] = {
 
 def writerows(writer, row, field_map) -> None:
     # sometimes user hasn't created their CCA email yet, if so skip them
-    if not (username := re.sub(email_regex, "", row[field_map["email"]].strip())):
+    email = row[field_map["email"]].strip()
+    if not re.search(email_regex, email) or not (
+        username := re.sub(email_regex, "", email)
+    ):
         return
 
     stype = row[field_map["type"]].strip().title()
