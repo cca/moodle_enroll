@@ -23,6 +23,7 @@ def test_normal_nso():
             "intlgrad,NSO-GRAD-2024FA,International\n",
             "intltransfer,NSO-TRSFR-2024FA,Transfer\n",
             "intltransfer,NSO-TRSFR-2024FA,International\n",
+            "seconddegree,NSO-TRSFR-2024FA,Second Degree\n",
         ]
 
 

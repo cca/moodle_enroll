@@ -11,11 +11,11 @@ import re
 import click
 
 email_regex: re.Pattern[str] = re.compile(r"@cca\.edu$")
-student_types: list[str] = ["First Year", "Transfer", "Graduate"]
-type_map: dict[str, str] = {
+student_type_map: dict[str, str] = {
     "First Year": "FRESH",
-    "Transfer": "TRSFR",
     "Graduate": "GRAD",
+    "Second Degree": "TRSFR",
+    "Transfer": "TRSFR",
 }
 
 
@@ -28,13 +28,13 @@ def writerows(writer, row, field_map) -> None:
         return
 
     stype = row[field_map["type"]].strip().title()
-    if stype not in student_types:
+    if stype not in student_type_map.keys():
         raise ValueError(f"Unknown student type {stype} for student {username}")
 
     writer.writerow(
         {
             "username": username,
-            "course1": field_map["course"].format(type=type_map[stype]),
+            "course1": field_map["course"].format(type=student_type_map[stype]),
             "group1": stype,
         }
     )
@@ -44,7 +44,7 @@ def writerows(writer, row, field_map) -> None:
         writer.writerow(
             {
                 "username": username,
-                "course1": field_map["course"].format(type=type_map[stype]),
+                "course1": field_map["course"].format(type=student_type_map[stype]),
                 "group1": "International",
             }
         )
