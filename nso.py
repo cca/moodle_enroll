@@ -12,6 +12,11 @@ import click
 
 email_regex: re.Pattern[str] = re.compile(r"@cca\.edu$")
 student_types: list[str] = ["First Year", "Transfer", "Graduate"]
+type_map: dict[str, str] = {
+    "First Year": "FRESH",
+    "Transfer": "TRSFR",
+    "Graduate": "GRAD",
+}
 
 
 def writerows(writer, row, field_map) -> None:
@@ -23,11 +28,10 @@ def writerows(writer, row, field_map) -> None:
     if stype not in student_types:
         raise ValueError(f"Unknown student type {stype} for student {username}")
 
-    # look for fields we need and write to output
     writer.writerow(
         {
             "username": username,
-            "course1": field_map["course"],
+            "course1": field_map["course"].format(type=type_map[stype]),
             "group1": stype,
         }
     )
@@ -37,7 +41,7 @@ def writerows(writer, row, field_map) -> None:
         writer.writerow(
             {
                 "username": username,
-                "course1": field_map["course"],
+                "course1": field_map["course"].format(type=type_map[stype]),
                 "group1": "International",
             }
         )
@@ -63,8 +67,11 @@ def writerows(writer, row, field_map) -> None:
     default="Applicant Type",
     help="Student type (First Year, Transfer, Graduate) column (default: Applicant Type)",
 )
-# TODO option to generate multiple CSVs (one per grad, transfer, first year)
-@click.option("--course", "-c", help="Course shortname (e.g. NSO-2024SP)")
+@click.option(
+    "--course",
+    "-c",
+    help="Course shortname (e.g. NSO-2024SP). If {type} is present in the course name, it will be replaced with the student type (GRAD, TRSFR, FRESH).",
+)
 def main(**kwargs):
     field_map: dict[str, str] = {
         "email": kwargs["email"],
