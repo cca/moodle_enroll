@@ -51,7 +51,7 @@ def meets_program_criteria(student) -> bool:
         and level == "Third Year"
     ):
         return True
-    if major == "Graduate Architecture" and level != "First Year":
+    if major == "Graduate Architecture" and level == "Second Year":
         return True
     # default to false
     return False
