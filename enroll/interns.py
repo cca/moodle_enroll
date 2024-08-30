@@ -161,3 +161,9 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
     wd_report_to_enroll_csv(args)
+    print(
+        "Created enrollments.csv. Feed it to the Upload Users tool: https://moodle.cca.edu/admin/tool/uploaduser/"
+    )
+    print(
+        f"Remember to add {args.semester} to the Semester Groups grouping in each course."
+    )
