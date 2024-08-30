@@ -15,6 +15,17 @@ pipenv install
 pipenv run test # run tests
 ```
 
+## Multiple Groups
+
+In a Moodle enrollment CSV, we can add someone to multiple courses using `course1`, `course2`, etc. columns. However, this means a row with a single `course1` but multiple groups (`group1`, `group2`) doesn't add the user to multiple groups in the course (`group2` would be a group in `course2`). To add a student to multiple groups in the same course, create multiple rows with different groups:
+
+| username | course1 | group1 |
+|----------|---------|--------|
+| maria | ART-101 | transfer |
+| maria | ART-101 | international |
+
+This is how interns.py adds students to multiple groups in the same course.
+
 ## Internship Enrollments Usage
 
 Generate enrollments CSV for Moodle from Workday report.
