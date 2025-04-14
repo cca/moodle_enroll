@@ -10,7 +10,7 @@ from openpyxl.worksheet.worksheet import Worksheet
 
 
 program_to_course_map: dict[str, str] = {
-    "Architecture": "BARCH-INTRN",
+    "Architecture": "ARCHT-INTRN",
     "Graduate Architecture": "MARCH-INTRN",
     "Graphic Design": "GRAPH-INTRN",
     "Industrial Design": "INDUS-INTRN",
