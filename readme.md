@@ -8,11 +8,11 @@ Prerequisites:
 
 - Access to "Students for Internship Review" report in Workday (ask AIS)
 - Python 3
-- Pipenv (`brew install pipenv`)
+- uv (`brew install uv`)
 
 ```sh
-pipenv install
-pipenv run test # run tests
+uv install
+uv run pytest -k enroll # run tests
 ```
 
 ## Multiple Groups
@@ -31,7 +31,7 @@ This is how interns.py adds students to multiple groups in the same course.
 Generate enrollments CSV for Moodle from Workday report.
 
 1. Download the "Students for Internship Review" report
-1. `pipenv run python enroll/interns.py -r report.xlsx -s "Fall 2024"`
+1. `uv run python enroll/interns.py -r report.xlsx -s "Fall 2024"`
     1. You don't need to pass a `-r` parameter if the report keeps its default name "Students_for_Internship_Review.xlsx"
     1. `-s` is the semester group for students
     1. Generate enrollments for a single program with `-p $PROGRAM` e.g. `-p Architecture`
@@ -41,7 +41,7 @@ Generate enrollments CSV for Moodle from Workday report.
 
 ## NSO Enrollments Usage
 
-This script is used to generate enrollments for the New Student Orientation courses. It lets you specify where in a provided CSV to look for the few pieces of information we need (email, type, international status). Example using CSV of Leave of Absence students: `pipenv run python enroll/nso.py --infile loa.csv -e "Student Institutional Email Address" -t "Program of Study Status" --intl "Student is International" -c "NSO-2024SP"`
+This script is used to generate enrollments for the New Student Orientation courses. It lets you specify where in a provided CSV to look for the few pieces of information we need (email, type, international status). Example using CSV of Leave of Absence students: `uv run python enroll/nso.py --infile loa.csv -e "Student Institutional Email Address" -t "Program of Study Status" --intl "Student is International" -c "NSO-2024SP"`
 
 ```sh
 Usage: nso.py [OPTIONS]
