@@ -48,7 +48,7 @@ from .interns import meets_program_criteria, make_enrollments
                 "Is International Student": "",
                 "Latest Class Standing": "Third Year",
             },
-            [("a", "ARCHT-INTRN", "Fall 2023")],
+            [("a", "BARCH-INTRN", "Fall 2023")],
         ),
         # international enrollment
         (
