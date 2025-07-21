@@ -31,8 +31,8 @@ This is how interns.py adds students to multiple groups in the same course.
 Generate enrollments CSV for Moodle from Workday report.
 
 1. Download the "Students for Internship Review" report
-1. `uv run python enroll/interns.py -r report.xlsx -s "Fall 2024"`
-    1. You don't need to pass a `-r` parameter if the report keeps its default name "Students_for_Internship_Review.xlsx"
+1. `uv run python enroll/interns.py -r report.xlsx -s "Fall 2025"`
+    1. "data/Students_for_Internship_Review.xlsx" is the default report path
     1. `-s` is the semester group for students
     1. Generate enrollments for a single program with `-p $PROGRAM` e.g. `-p Architecture`
 1. Go to Moodle > [Upload Users](https://moodle.cca.edu/admin/tool/uploaduser/index.php)
