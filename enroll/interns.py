@@ -1,10 +1,11 @@
 import _csv  # for typing
-import argparse
 import csv
+from pathlib import Path
 import re
 from typing import Any, Generator, Literal
 import warnings
 
+import click
 from openpyxl import Workbook, load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
 
@@ -17,7 +18,7 @@ program_to_course_map: dict[str, str] = {
     "Interaction Design": "IXDSN-INTRN",
     "Interior Design": "INTER-INTRN",
 }
-programs_with_internship = list(program_to_course_map.keys())
+programs_with_internship: list[str] = list(program_to_course_map.keys())
 
 
 def row_to_dict(header, row) -> dict[Any, Any]:
@@ -57,7 +58,7 @@ def meets_program_criteria(student) -> bool:
     return False
 
 
-def make_enrollments(student, semester, program=None, listmode=False) -> list[Any]:
+def make_enrollments(student, semester, program=None, list_mode=False) -> list[Any]:
     """return enrollment rows if student meets general criteria
     if program is present, only returns rows for students in that program
 
@@ -86,7 +87,7 @@ def make_enrollments(student, semester, program=None, listmode=False) -> list[An
         is_intl: Literal["International", False] = (
             "International" if student["Is International Student"] == "Yes" else False
         )
-        if listmode:
+        if list_mode:
             return [student["Student"], student["CCA Email"]]
         if is_intl:
             # intl students need 2 enrollments so they can be in 2 groups (semester and intl)
@@ -95,11 +96,13 @@ def make_enrollments(student, semester, program=None, listmode=False) -> list[An
     return []
 
 
-def wd_report_to_enroll_csv(args) -> None:
+def wd_report_to_enroll_csv(
+    report: Path, semester: str, program: str, list_mode: bool
+) -> None:
     # silence "Workbook contains no default style" warning
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
-        wb: Workbook = load_workbook(args.report)
+        wb: Workbook = load_workbook(report)
     sheet: Worksheet = wb.worksheets[0]
     rows: Generator = sheet.iter_rows(values_only=True)
     header: tuple = next(rows)
@@ -109,61 +112,65 @@ def wd_report_to_enroll_csv(args) -> None:
         writer.writerow(["username", "course1", "group1"])
         for row in rows:
             student: dict[str, str] = row_to_dict(header, row)
-            enrollments: list = make_enrollments(
-                student, args.semester, args.program, args.list
+            enrollments: list[Any] = make_enrollments(
+                student, semester, program, list_mode
             )
-            if args.list and len(enrollments):
-                print("\t".join(enrollments))
+            if list_mode and len(enrollments):
+                click.echo("\t".join(enrollments))
             else:
                 writer.writerows(enrollments)
 
 
-def semester(str) -> str:
-    """validate semester string"""
-    if re.match(r"(Spring|Fall|Summer) \d{4}", str):
-        return str
-    raise argparse.ArgumentTypeError(
-        f"Semester must be in the format of 'Season YYYY' like 'Fall 2023', not '{str}'"
+def semester_validator(ctx, param, value):
+    """validate semester string for click"""
+    if re.match(r"(Spring|Fall|Summer) \d{4}", value):
+        return value
+    raise click.BadParameter(
+        f"Semester must be in the format of 'Season YYYY' like 'Fall 2023', not '{value}'"
     )
+
+
+@click.command(
+    help="Generate enrollments for students who are ready for internship courses."
+)
+@click.help_option("-h", "--help")
+@click.option(
+    "-r",
+    "--report",
+    default="data/Students_for_Internship_Review.xlsx",
+    help="path to the Workday Excel file",
+    required=True,
+    type=click.Path(exists=True, path_type=Path),
+)
+@click.option(
+    "-s",
+    "--semester",
+    callback=semester_validator,
+    help='semester group (like "Fall 2023"))',
+    required=True,
+)
+@click.option(
+    "-p",
+    "--program",
+    help="Generate enrollments for only a specific program",
+    type=click.Choice(programs_with_internship),
+)
+@click.option(
+    "-l",
+    "--list-mode",
+    is_flag=True,
+    help="print list of students (instead of CSV)",
+)
+def main(report: Path, semester: str, program: str, list_mode: bool):
+    wd_report_to_enroll_csv(report, semester, program, list_mode)
+    if not list_mode:
+        click.echo(
+            "Created enrollments.csv. Feed it to the Upload Users tool: https://moodle.cca.edu/admin/tool/uploaduser/"
+        )
+        click.echo(
+            f"Remember to add {semester} to the Semester Groups grouping in each course."
+        )
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(
-        prog="python interns.py",
-        description="Convert Workday internships report into Moodle enrollment CSV.",
-    )
-    parser.add_argument(
-        "-p",
-        "--program",
-        required=False,
-        choices=programs_with_internship,
-        help="Generate enrollments for only a specific program",
-    )
-    parser.add_argument(
-        "-r",
-        "--report",
-        required=True,
-        default="Students_for_Internship_Review.xlsx",
-        help="path to the Workday Excel file",
-    )
-    parser.add_argument(
-        "-s",
-        "--semester",
-        default="Fall 2024",
-        type=semester,
-        help='semester group (like "Fall 2023"))',
-    )
-    parser.add_argument(
-        "-l",
-        "--list",
-        action="store_true",
-        help="print list of students (instead of CSV)",
-    )
-    args = parser.parse_args()
-    wd_report_to_enroll_csv(args)
-    print(
-        "Created enrollments.csv. Feed it to the Upload Users tool: https://moodle.cca.edu/admin/tool/uploaduser/"
-    )
-    print(
-        f"Remember to add {args.semester} to the Semester Groups grouping in each course."
-    )
+    main()

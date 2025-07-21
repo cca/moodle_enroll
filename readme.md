@@ -39,12 +39,30 @@ Generate enrollments CSV for Moodle from Workday report.
     1. Select the CSV
     1. Don't modify user values (e.g. no updates, no default values, etc.)
 
+```sh
+Usage: interns.py [OPTIONS]
+
+  Generate enrollments for students who are ready for internship courses.
+
+Options:
+  -h, --help                      Show this message and exit.
+  -r, --report PATH               path to the Workday Excel file  [required]
+  -s, --semester TEXT             semester group (like "Fall 2023"))
+                                  [required]
+  -p, --program [Architecture|Graduate Architecture|Graphic Design|Industrial Design|Interaction Design|Interior Design]
+                                  Generate enrollments for only a specific
+                                  program
+  -l, --list-mode                 print list of students (instead of CSV)
+```
+
 ## NSO Enrollments Usage
 
 This script is used to generate enrollments for the New Student Orientation courses. It lets you specify where in a provided CSV to look for the few pieces of information we need (email, type, international status). Example using CSV of Leave of Absence students: `uv run python enroll/nso.py --infile loa.csv -e "Student Institutional Email Address" -t "Program of Study Status" --intl "Student is International" -c "NSO-2024SP"`
 
 ```sh
 Usage: nso.py [OPTIONS]
+
+  Convert new students CSV into Moodle enrollment CSV.
 
 Options:
   -h, --help          Show this message and exit.

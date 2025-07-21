@@ -140,7 +140,7 @@ def test_meets_program_criteria(input, expected):
     assert meets_program_criteria(input) == expected
 
 
-# test listmode
+# test list mode
 @pytest.mark.parametrize(
     "input,expected",
     [
@@ -170,5 +170,5 @@ def test_meets_program_criteria(input, expected):
         ),
     ],
 )
-def test_make_enrollment_listmode(input, expected):
-    assert make_enrollments(input, "Fall 2023", listmode=True) == expected
+def test_make_enrollment_list_mode(input, expected):
+    assert make_enrollments(input, "Fall 2023", list_mode=True) == expected

@@ -50,7 +50,7 @@ def writerows(writer, row, field_map) -> None:
         )
 
 
-@click.command()
+@click.command(help="Convert new students CSV into Moodle enrollment CSV.")
 @click.help_option("-h", "--help")
 @click.option("--infile", "-i", help="Input CSV file")
 @click.option(
