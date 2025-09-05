@@ -106,6 +106,9 @@ def wd_report_to_enroll_csv(
     sheet: Worksheet = wb.worksheets[0]
     rows: Generator = sheet.iter_rows(values_only=True)
     header: tuple = next(rows)
+    if header[0] == "Students for Internship Review":
+        # skip header row
+        header = next(rows)
     with open("enrollments.csv", "w") as file:
         writer: _csv._writer = csv.writer(file)
         # write CSV header row
