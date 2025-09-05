@@ -1,14 +1,13 @@
 import _csv  # for typing
 import csv
-from pathlib import Path
 import re
-from typing import Any, Generator, Literal
 import warnings
+from pathlib import Path
+from typing import Any, Generator, Literal
 
 import click
 from openpyxl import Workbook, load_workbook
 from openpyxl.worksheet.worksheet import Worksheet
-
 
 program_to_course_map: dict[str, str] = {
     "Architecture": "BARCH-INTRN",
