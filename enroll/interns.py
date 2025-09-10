@@ -166,6 +166,12 @@ def semester_validator(ctx, param, value):
     help="print list of students (instead of CSV)",
 )
 def main(report: Path, semester: str, program: str, list_mode: bool):
+    if program == "Industrial Design":
+        click.echo(
+            "We do not preload Industrial Design internships students. They provide us with a list of students who completed the Professional Practice course.",
+            err=True,
+        )
+        exit(1)
     wd_report_to_enroll_csv(report, semester, program, list_mode)
     if not list_mode:
         click.echo(
