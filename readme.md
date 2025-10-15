@@ -49,7 +49,7 @@ Options:
   -r, --report PATH               path to the Workday Excel file  [required]
   -s, --semester TEXT             semester group (like "Fall 2023"))
                                   [required]
-  -p, --program [Architecture|Graduate Architecture|Graphic Design|Industrial Design|Interaction Design|Interior Design]
+  -p, --program [Architecture|Graduate Architecture|Graphic Design|Interior Design]
                                   Generate enrollments for only a specific
                                   program
   -l, --list-mode                 print list of students (instead of CSV)

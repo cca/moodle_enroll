@@ -13,8 +13,8 @@ program_to_course_map: dict[str, str] = {
     "Architecture": "BARCH-INTRN",
     "Graduate Architecture": "MARCH-INTRN",
     "Graphic Design": "GRAPH-INTRN",
-    "Industrial Design": "INDUS-INTRN",
-    "Interaction Design": "IXDSN-INTRN",
+    # "Industrial Design": "INDUS-INTRN",
+    # "Interaction Design": "IXDSN-INTRN",
     "Interior Design": "INTER-INTRN",
 }
 programs_with_internship: list[str] = list(program_to_course_map.keys())
@@ -40,13 +40,14 @@ def meets_program_criteria(student) -> bool:
     major: str = student["Primary Program of Study"]
     level: str = student["Latest Class Standing"]
     # INDUS wants students to finish Prof Practice, we do not preload them
+    # IXDSN has their own "student tracking" spreadsheet we use
     if (
         major
         in (
             "Architecture",
             "Interior Design",
             "Graphic Design",
-            "Interaction Design",
+            # "Interaction Design",
         )
         and level == "Third Year"
     ):
@@ -175,7 +176,7 @@ def main(report: Path, semester: str, program: str, list_mode: bool):
     wd_report_to_enroll_csv(report, semester, program, list_mode)
     if not list_mode:
         click.echo(
-            "Created enrollments.csv. Feed it to the Upload Users tool: https://moodle.cca.edu/admin/tool/uploaduser/"
+            "Created enrollments.csv. Upload Users: https://moodle.cca.edu/admin/tool/uploaduser/"
         )
         click.echo(
             f"Remember to add {semester} to the Semester Groups grouping in each course."
