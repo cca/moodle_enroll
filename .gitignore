@@ -2,3 +2,5 @@
 *.csv
 !enroll/fixtures/nso.csv
 data/*
+.env
+rest_apis/config.py
