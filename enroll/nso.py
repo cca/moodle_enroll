@@ -52,28 +52,40 @@ def writerows(writer, row, field_map) -> None:
 
 @click.command(help="Convert new students CSV into Moodle enrollment CSV.")
 @click.help_option("-h", "--help")
-@click.option("--infile", "-i", help="Input CSV file")
+@click.argument("input.csv", required=True, type=click.Path(exists=True))
 @click.option(
-    "--outfile", "-o", default="nso.csv", help="Output CSV file (default: nso.csv)"
+    "--outfile",
+    "-o",
+    default="nso.csv",
+    help="Output CSV file (default: nso.csv)",
+    type=click.Path(writable=True),
 )
 @click.option(
-    "--email", "-e", default="CCA Email", help="Email column (default: CCA Email)"
+    "--email",
+    "-e",
+    default="CCA email",
+    help="Email column (default: CCA email)",
+    type=str,
 )
 @click.option(
     "--intl",
-    default="International?",
-    help="International column (default: International?)",
+    default="Is International Student",
+    help="International column (default: Is International Student)",
+    type=str,
 )
 @click.option(
     "--type",
     "-t",
     default="Applicant Type",
     help="Student type (First Year, Transfer, Graduate) column (default: Applicant Type)",
+    type=str,
 )
 @click.option(
     "--course",
     "-c",
     help="Course shortname (e.g. NSO-2024SP). If {type} is present in the course name, it will be replaced with the student type (GRAD, TRSFR, FRESH).",
+    required=True,
+    type=str,
 )
 def main(**kwargs):
     field_map: dict[str, str] = {
@@ -82,7 +94,7 @@ def main(**kwargs):
         "course": kwargs["course"],
         "type": kwargs["type"],
     }
-    with open(kwargs["infile"], "r") as csvfile:
+    with open(kwargs["input.csv"], "r") as csvfile:
         reader = csv.DictReader(csvfile)
         with open(kwargs["outfile"], "w") as outfile:
             writer = csv.DictWriter(
