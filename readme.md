@@ -19,6 +19,13 @@ uv sync
 uv run pytest # only enroll has tests at this time
 ```
 
+Scripts that interact with Moodle's REST API use an `.env` file in the project root for authentication and configuration. Create a `.env` file based on the provided `example.env`:
+
+```sh
+cp example.env .env
+# Edit .env with your actual values
+```
+
 ## LICENSE
 
 [ECL Version 2.0](https://opensource.org/licenses/ECL-2.0)

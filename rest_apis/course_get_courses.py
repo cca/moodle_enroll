@@ -1,5 +1,12 @@
+import json
+import sys
+from pathlib import Path
+
+import click
 import requests
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 
 # https://moodle.cca.edu/webservice/rest/server.php?wstoken=...&wsfunction=core_course_get_courses&moodlewsrestformat=json
@@ -47,5 +54,34 @@ def get_mdl_courses():
     return "Error: {}".format(data)
 
 
+@click.command(help="Get the complete list of courses in Moodle.")
+@click.help_option("-h", "--help")
+@click.option(
+    "--json-output",
+    is_flag=True,
+    help="Output as formatted JSON",
+)
+@click.option(
+    "--token",
+    "-t",
+    help="Moodle web service token (overrides .env)",
+)
+@click.option(
+    "--domain",
+    "-d",
+    help="Moodle domain URL (overrides .env)",
+)
+def main(json_output, token, domain):
+    """Get all courses from Moodle."""
+    if token:
+        config.token = token
+    if domain:
+        config.url = domain + "/webservice/rest/server.php"
+
+    result = get_mdl_courses()
+    if json_output and isinstance(result, list):
+        click.echo(json.dumps(result, indent=2))
+
+
 if __name__ == "__main__":
-    get_mdl_courses()
+    main()

@@ -1,19 +1,14 @@
-"""Get users enrolled in a Moodle course.
-
-Usage:
-    enrol_get_enrolled_users.py <courseid>
-
-Options:
-  <courseid>    numberic ID of the course in Moodle
-  -h --help     Show this screen.
-  --version     Show version.
-"""
+"""Get users enrolled in a Moodle course."""
 
 import json
+import sys
+from pathlib import Path
 
+import click
 import requests
-from docopt import docopt
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 
 # usage: python core_enrol_get_enrolled_users.py 3606
@@ -33,12 +28,37 @@ def get_enrolled_users(courseid: str):
     }
 
     response: requests.Response = requests.get(url, params=params)
+    # weirdly this gives not only all the profile and preferences for each user
+    # but also all their enrollments in _other_ courses
     data = response.json()
 
     # pretty print full data
     return data
 
 
+@click.command(help="Get users enrolled in a Moodle course.")
+@click.help_option("-h", "--help")
+@click.argument("courseid")
+@click.option(
+    "--token",
+    "-t",
+    help="Moodle web service token (overrides .env)",
+)
+@click.option(
+    "--domain",
+    "-d",
+    help="Moodle domain URL (overrides .env)",
+)
+def main(courseid, token, domain):
+    """Get enrolled users for a course by its numeric ID."""
+    if token:
+        config.token = token
+    if domain:
+        config.url = domain + "/webservice/rest/server.php"
+
+    result = get_enrolled_users(courseid)
+    click.echo(json.dumps(result, indent=4, sort_keys=True))
+
+
 if __name__ == "__main__":
-    args = docopt(__doc__, version="enrol_get_enrolled_users 1.0")  # type: ignore
-    print(json.dumps(get_enrolled_users(args["<courseid>"]), indent=4, sort_keys=True))
+    main()

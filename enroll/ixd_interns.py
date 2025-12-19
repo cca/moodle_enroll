@@ -1,8 +1,10 @@
 # this expects a CSV with an email and international status column
 # then exports the IXD intern enrollment CSV
-# usage: python enroll/ixd_interns.py "Fall 2025" data/ixd.csv > enrollments.csv
 import csv
-import sys
+import re
+from pathlib import Path
+
+import click
 
 COURSE: str = "IXDSN-INTRN"
 EMAIL_COLUMN: str = "email"
@@ -17,17 +19,46 @@ def make_rows(row: dict[str, str], semester: str) -> list[list[str]]:
     return rows
 
 
-if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        print('Usage: python enroll/ixd_interns.py "Fall 2025" data/ixd.csv')
-        print('data/ixd.csv should have "email" and "international" columns')
-        exit(1)
+def semester_validator(ctx, param, value):
+    """validate semester string for click"""
+    if re.match(r"(Spring|Fall|Summer) \d{4}", value):
+        return value
+    raise click.BadParameter(
+        f"Semester must be in the format of 'Season YYYY' like 'Fall 2023', not '{value}'"
+    )
 
-    semester: str = sys.argv[1]
-    with open(sys.argv[2], "r") as fh:
+
+@click.command(
+    help="Generate IXD intern enrollments from a CSV with email and international columns."
+)
+@click.help_option("-h", "--help")
+@click.option(
+    "-i",
+    "--infile",
+    required=True,
+    help="Input CSV file with 'email' and 'international' columns",
+    type=click.Path(exists=True, path_type=Path),
+)
+@click.option(
+    "-s",
+    "--semester",
+    callback=semester_validator,
+    help='Semester group (like "Fall 2025")',
+    required=True,
+)
+@click.option(
+    "-o",
+    "--outfile",
+    default="enrollments.csv",
+    help="Output CSV file (default: enrollments.csv)",
+    type=click.Path(path_type=Path),
+)
+def main(infile, semester, outfile):
+    """Generate IXD intern enrollment CSV."""
+    with open(infile, "r") as fh:
         reader = csv.DictReader(fh)
-        with open("enrollments.csv", "w") as outfile:
-            writer = csv.writer(outfile)
+        with open(outfile, "w") as out:
+            writer = csv.writer(out)
             # header
             writer.writerow(["username", "course1", "group1"])
             for row in reader:
@@ -35,6 +66,9 @@ if __name__ == "__main__":
                 for e in enrollments:
                     writer.writerow(e)
 
-    print(
-        "Created enrollments.csv. Upload Users: https://moodle.cca.edu/admin/tool/uploaduser/"
-    )
+    click.echo(f"Created {outfile}")
+    click.echo("Upload Users: https://moodle.cca.edu/admin/tool/uploaduser/")
+
+
+if __name__ == "__main__":
+    main()

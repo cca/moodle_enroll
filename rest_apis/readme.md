@@ -4,7 +4,7 @@ Example scripts for accessing different portions of the Moodle REST APIs. The Mo
 
 ## Setup
 
-Obtain a [Web Services token](https://moodle.cca.edu/admin/webservice/tokens.php) for a Service with the appropriate API permissions, then save that token in a config.py file (see example.config.py for details).
+Obtain a [Web Services token](https://moodle.cca.edu/admin/webservice/tokens.php) for a Service with the appropriate API permissions, then save that token in a .env file (see example.env for details) in the project root.
 
 ## course_get_categories
 

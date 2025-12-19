@@ -143,7 +143,7 @@ def semester_validator(ctx, param, value):
     "-r",
     "--report",
     default="data/Students_for_Internship_Review.xlsx",
-    help="path to the Workday Excel file",
+    help="path to the Workday Excel file (relative to project root)",
     required=True,
     type=click.Path(exists=True, path_type=Path),
 )

@@ -8,9 +8,7 @@ from .nso import main
 
 def test_normal_nso():
     runner = CliRunner()
-    result = runner.invoke(
-        main, ["-i", "enroll/fixtures/nso.csv", "-c", "NSO-{type}-2024FA"]
-    )
+    result = runner.invoke(main, ["enroll/fixtures/nso.csv", "-c", "NSO-{type}-2024FA"])
     assert result.exit_code == 0
 
     with open("nso.csv", "r") as f:
@@ -31,9 +29,9 @@ def test_student_type_error():
     runner = CliRunner()
     result = runner.invoke(
         main,
-        ["-i", "enroll/fixtures/error.csv", "-c", "NSO-{type}-2024FA", "-t", "Type"],
+        ["enroll/fixtures/error.csv", "-c", "NSO-{type}-2024FA", "-t", "Type"],
     )
-    assert result.exit_code == 1
+    assert result.exit_code == 2
     assert result.exception is not None
 
 

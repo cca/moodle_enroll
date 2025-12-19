@@ -1,22 +1,14 @@
-"""Get Moodle course data from API.
-
-Usage:
-    course_get_courses_by_field.py [--json] <shortname>
-
-Options:
-  <shortname>   a CCA section code formatted like {department code}-
-                {course number}-{section number}-{semester code} e.g.
-                ANIMA-1000-1-2021SP.
-  -h --help     Show this screen.
-  --version     Show version.
-  --json        JSON output.
-"""
+"""Get Moodle course data from API."""
 
 import json
+import sys
+from pathlib import Path
 
+import click
 import requests
-from docopt import docopt
 
+# Add parent directory to path for imports
+sys.path.insert(0, str(Path(__file__).resolve().parent))
 import config
 
 # https://moodle.cca.edu/webservice/rest/server.php?wstoken=...&wsfunction=core_course_get_courses_by_field&moodlewsrestformat=json&field=shortname&value=EXCHG-3740-1-2019FA
@@ -39,10 +31,10 @@ def get_mdl_course(shortname):
 
         LITPA-2000-15-WRLIT-2100-13-2019FA
 
-    For a multi-crosslisted section, sections _appear_ (@TODO confirm) to be
-    listed in first alphabetical order by department and within department by
-    ascending numerical order, thus a triple-crosslisted section across two
-    (CERAM & CRAFT) departments looks like:
+    For a multi-crosslisted section, sections should be listed in first
+    alphabetical order by department and within department by ascending
+    numerical order, thus a triple-crosslisted section across two (CERAM
+    & CRAFT) departments looks like:
 
         CERAM-1000-1-CERAM-2700-2-CERAM-3700-2-CRAFT-2700-3-2019FA
     """
@@ -98,13 +90,37 @@ def get_mdl_course(shortname):
     return data
 
 
-def main(arguments):
-    if arguments.get("--json"):
-        return print(json.dumps(get_mdl_course(arguments["<shortname>"])))
+@click.command(help="Get Moodle course data by shortname.")
+@click.help_option("-h", "--help")
+@click.argument("shortname")
+@click.option(
+    "--json-output",
+    is_flag=True,
+    help="Output as formatted JSON",
+)
+@click.option(
+    "--token",
+    "-t",
+    help="Moodle web service token (overrides .env)",
+)
+@click.option(
+    "--domain",
+    "-d",
+    help="Moodle domain URL (overrides .env)",
+)
+def main(shortname, json_output, token, domain):
+    """Get course data for a CCA section code like ANIMA-1000-1-2021SP."""
+    if token:
+        config.token = token
+    if domain:
+        config.url = domain + "/webservice/rest/server.php"
 
-    return print(get_mdl_course(arguments["<shortname>"]))
+    result = get_mdl_course(shortname)
+    if json_output:
+        click.echo(json.dumps(result, indent=2))
+    else:
+        click.echo(result)
 
 
-# CLI use: pass shortname on the command line
 if __name__ == "__main__":
-    main(docopt(__doc__, version="course_get_courses_by_field 1.0"))  # type: ignore
+    main()

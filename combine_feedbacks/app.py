@@ -1,11 +1,14 @@
 import csv
-from datetime import date
-from html import unescape
 import os
 import re
+from datetime import date
+from html import unescape
+from pathlib import Path
+from typing import Any
 
+import click
 from dotenv import dotenv_values
-from requests import get, HTTPError
+from requests import HTTPError, Response, get
 
 # a tripartite set of API calls:
 # 1. get all courses in the Internships category (may need to weed out demo/template courses)
@@ -15,15 +18,23 @@ from requests import get, HTTPError
 # 3. iterate over feedbacks, get all their analyses
 # wsfunction: mod_feedback_get_analysis
 
+# Find project root (where .env file is) by looking for pyproject.toml
+current_dir: Path = Path(__file__).resolve().parent
+project_root: Path = current_dir.parent
+while (
+    not (project_root / "pyproject.toml").exists()
+    and project_root != project_root.parent
+):
+    project_root = project_root.parent
 
-conf = {
-    **dotenv_values(".env"),  # load private env
+conf: dict[str, Any] = {
+    **dotenv_values(project_root / ".env"),  # load private env from project root
     **os.environ,  # override loaded values with environment variables
 }
-conf["URL"] = conf["DOMAIN"] + "/webservice/rest/server.php"
+conf["URL"] = conf.get("DOMAIN", "") + "/webservice/rest/server.php"
 
 
-def debug(s):
+def debug(s: str) -> None:
     """print message only if DEBUG env var is True
 
     Args:
@@ -34,7 +45,7 @@ def debug(s):
         print(s)
 
 
-def http_error(resp):
+def http_error(resp: Response) -> None:
     """print HTTP error details
 
     Args:
@@ -52,9 +63,9 @@ def get_courses() -> list[dict]:
     Returns:
         list[dict]: list of course dicts
     """
-    service = "core_course_get_courses_by_field"
-    format = "json"
-    params = {
+    service: str = "core_course_get_courses_by_field"
+    format: str = "json"
+    params: dict[str, str] = {
         # see https://moodle.cca.edu/admin/settings.php?section=webservicetokens
         "wstoken": conf["TOKEN"],
         "wsfunction": service,
@@ -63,7 +74,7 @@ def get_courses() -> list[dict]:
         "value": conf["CATEGORY"],
     }
 
-    response = get(conf["URL"], params=params)
+    response: Response = get(conf["URL"], params=params)
     try:
         response.raise_for_status()
     except HTTPError:
@@ -71,19 +82,22 @@ def get_courses() -> list[dict]:
 
     data = response.json()
     debug(
-        f'Found {len(data["courses"])} courses in category {conf["DOMAIN"]}/course/management.php?categoryid={conf["CATEGORY"]}'
+        f"Found {len(data['courses'])} courses in category {conf['DOMAIN']}/course/management.php?categoryid={conf['CATEGORY']}"
     )
     return data["courses"]
 
 
-def write_csv(feedbacks, label):
+def write_csv(feedbacks: list[dict], label: str, output_dir: Path) -> None:
     """write feedbacks to a CSV file
 
     Args:
         feedbacks (list[dict]): list of feedback dicts with responses stored in anonattempts property
         label (str): label to use in the filename
+        output_dir (Path): directory to write the CSV file to
     """
-    filename = f"data/{label}-responses.csv"
+    output_dir = Path(output_dir)
+    output_dir.mkdir(parents=True, exist_ok=True)
+    filename: Path = output_dir / f"{label}-responses.csv"
     # example attempts structure:
     #   "anonattempts": [
     #     {
@@ -102,7 +116,7 @@ def write_csv(feedbacks, label):
     #   ...objects for each question, below is end of "attempts" array
     #   ],
     # extract columns from first response to first feedback
-    columns = []
+    columns: list[str] = []
     for r in feedbacks[0]["anonattempts"][0]["responses"]:
         # find (label) and extract it from parentheses
         label_matches = re.match(r"^\(.*\)", r["name"].strip())
@@ -120,7 +134,7 @@ def write_csv(feedbacks, label):
         for feedback in feedbacks:
             for attempt in feedback["anonattempts"]:
                 # use the "printval" property for Connection question, rawval for others
-                row = []
+                row: list[Any] = []
                 for response in attempt["responses"]:
                     if re.match(r"\(connection\)", response["name"].lower()):
                         row.append(unescape(response["printval"]))
@@ -142,7 +156,7 @@ def course_ids(courses) -> list[str]:
     Returns:
         list[str]: list of course ids as strings
     """
-    ids = [
+    ids: list[str] = [
         str(c["id"])
         for c in courses
         if str(c["id"]) not in conf["IGNORED_COURSES"].split(",")
@@ -160,11 +174,11 @@ def get_feedbacks(courses) -> list[dict]:
     Returns:
         list[dict]: list of feedback activity dicts
     """
-    ids = course_ids(courses)
+    ids: list[str] = course_ids(courses)
 
-    service = "mod_feedback_get_feedbacks_by_courses"
-    format = "json"
-    params = {
+    service: str = "mod_feedback_get_feedbacks_by_courses"
+    format: str = "json"
+    params: dict[str, str] = {
         # see https://moodle.cca.edu/admin/settings.php?section=webservicetokens
         "wstoken": conf["TOKEN"],
         "wsfunction": service,
@@ -172,20 +186,18 @@ def get_feedbacks(courses) -> list[dict]:
         "courseids[]": ",".join(ids),
     }
     # each course id is its own URL parameter, weird PHP behavior
-    # ! there is probably a potential bug here where many courses -> too long URL
-    # ! URLs can be 2048 chars and getting 2 courses is only ≈200 so maybe not
-    # ! also unclear if Moodle has a limit on the number of feedbacks it returns
+    # ! potential bug where large number of courses -> too long URL
     for idx, id in enumerate(ids):
         params[f"courseids[{idx}]"] = id
 
-    response = get(conf["URL"], params=params)
+    response: Response = get(conf["URL"], params=params)
     try:
         response.raise_for_status()
     except HTTPError:
         http_error(response)
 
     data = response.json()
-    feedbacks = data.get("feedbacks", [])
+    feedbacks: list[dict[str, Any]] = data.get("feedbacks", [])
     # example feedback structure:
     # {
     #   "id": 1520,
@@ -206,7 +218,7 @@ def get_feedbacks(courses) -> list[dict]:
     return feedbacks
 
 
-def feedback_type(feedback):
+def feedback_type(feedback: dict[str, Any]) -> str | None:
     """classify feedback as either an internship information or evaluation activity, or neither
     the returned string must match the name of the list in get_responses that it's appended to
 
@@ -245,10 +257,10 @@ def get_responses(feedbacks) -> tuple[list[dict], list[dict]]:
         type = feedback_type(fdbk)
         if type:
             # see note in readme about the difference between these 2 functions
-            service = "mod_feedback_get_responses_analysis"
+            service: str = "mod_feedback_get_responses_analysis"
             # service = 'mod_feedback_get_analysis'
-            format = "json"
-            params = {
+            format: str = "json"
+            params: dict[str, str] = {
                 "wstoken": conf["TOKEN"],
                 "wsfunction": service,
                 "moodlewsrestformat": format,
@@ -271,7 +283,7 @@ def get_responses(feedbacks) -> tuple[list[dict], list[dict]]:
             #   "warnings": []
             # }
             debug(
-                f'{len(data["anonattempts"])} attempts on Feedback {fdbk["id"]} {conf["DOMAIN"] + "/mod/feedback/show_entries.php?id=" + str(fdbk["coursemodule"])}'
+                f"{len(data['anonattempts'])} attempts on Feedback {fdbk['id']} {conf['DOMAIN'] + '/mod/feedback/show_entries.php?id=' + str(fdbk['coursemodule'])}"
             )
 
             if data["totalanonattempts"] > 0:
@@ -280,9 +292,64 @@ def get_responses(feedbacks) -> tuple[list[dict], list[dict]]:
     return internships, evaluations
 
 
-if __name__ == "__main__":
+@click.command(help="Combine Moodle internship feedback responses into CSV files.")
+@click.help_option("-h", "--help")
+@click.option(
+    "--output-dir",
+    "-o",
+    default="data",
+    help="Directory to write CSV files to (default: data)",
+    type=click.Path(path_type=Path),
+)
+@click.option(
+    "--category",
+    "-c",
+    help="Moodle category ID to fetch courses from (overrides .env)",
+)
+@click.option(
+    "--token",
+    "-t",
+    help="Moodle web service token (overrides .env)",
+)
+@click.option(
+    "--domain",
+    "-d",
+    help="Moodle domain URL (overrides .env)",
+)
+@click.option(
+    "--debug",
+    is_flag=True,
+    help="Enable debug output",
+)
+def main(output_dir, category, token, domain, debug):
+    """Fetch and combine internship feedback from Moodle."""
+    # Override config with CLI options if provided
+    if category:
+        conf["CATEGORY"] = category
+    if token:
+        conf["TOKEN"] = token
+    if domain:
+        conf["DOMAIN"] = domain
+        conf["URL"] = domain + "/webservice/rest/server.php"
+    if debug:
+        conf["DEBUG"] = "true"
+
+    # Validate required config
+    if not conf.get("TOKEN") or not conf.get("DOMAIN") or not conf.get("CATEGORY"):
+        click.echo(
+            "Error: TOKEN, DOMAIN, and CATEGORY must be set in .env or via CLI options",
+            err=True,
+        )
+        exit(1)
+
     courses = get_courses()
     feedbacks = get_feedbacks(courses)
     internships, evaluations = get_responses(feedbacks)
-    write_csv(internships, f"{date.today().isoformat()}-internships")
-    write_csv(evaluations, f"{date.today().isoformat()}-evaluations")
+    today = date.today().isoformat()
+    write_csv(internships, f"{today}-internships", output_dir)
+    write_csv(evaluations, f"{today}-evaluations", output_dir)
+    click.echo(f"Wrote CSV files to {output_dir}")
+
+
+if __name__ == "__main__":
+    main()
